@@ -57,7 +57,9 @@ PERSON A — KEY CONCEPTS TO UNDERSTAND FOR YOUR REPORT & VIVA
 import cv2
 import numpy as np
 import time
-from mtcnn import MTCNN
+import torch
+from facenet_pytorch import MTCNN as FacenetMTCNN
+from PIL import Image
 import config
 
 
@@ -315,17 +317,25 @@ class MTCNNDetector:
     """
 
     def __init__(self):
-        self.detector = MTCNN(
+        # facenet_pytorch MTCNN uses PyTorch (no TensorFlow needed)
+        # select_largest=False: return ALL faces, not just the biggest
+        # post_process=False: return raw boxes (we handle cropping ourselves)
+        # device: use GPU if available, otherwise CPU
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.detector = FacenetMTCNN(
             min_face_size=config.MTCNN_MIN_FACE_SIZE,
-            steps_threshold=config.MTCNN_THRESHOLDS,
-            scale_factor=config.MTCNN_SCALE_FACTOR
+            thresholds=config.MTCNN_THRESHOLDS,
+            factor=config.MTCNN_SCALE_FACTOR,
+            select_largest=False,
+            post_process=False,
+            device=device
         )
         self.preprocessor = FacePreprocessor()
-        print("[INFO] MTCNN detector initialised.")
+        print(f"[INFO] MTCNN detector initialised (device: {device}).")
 
     def detect_faces(self, image, preprocess=True):
         """
-        Detect all faces in an image using MTCNN.
+        Detect all faces in an image using MTCNN (PyTorch version).
 
         Parameters:
             image (numpy.ndarray): Input BGR image.
@@ -344,25 +354,49 @@ class MTCNNDetector:
             processed = image.copy()
             scale = 1.0
 
-        # MTCNN expects RGB
+        # Convert BGR → RGB, then to PIL Image (facenet_pytorch expects PIL)
         image_rgb = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB)
-        detections = self.detector.detect_faces(image_rgb)
+        pil_image = Image.fromarray(image_rgb)
+
+        # detect() returns:
+        #   boxes: tensor of shape [N, 4] with [x1, y1, x2, y2] per face
+        #   probs: tensor of shape [N] with confidence per face
+        #   landmarks: tensor of shape [N, 5, 2] with 5 landmark (x,y) pairs
+        #              Order: left_eye, right_eye, nose, mouth_left, mouth_right
+        boxes, probs, landmarks = self.detector.detect(pil_image, landmarks=True)
 
         detection_time = (time.time() - start_time) * 1000
 
         results = []
-        for det in detections:
-            box = det['box']
-            confidence = det['confidence']
-            keypoints = det['keypoints']
 
-            # Scale back to original image coordinates
+        # Handle case where no faces are found
+        if boxes is None or len(boxes) == 0:
+            print(f"[MTCNN] No faces detected ({detection_time:.1f}ms).")
+            return results
+
+        for i in range(len(boxes)):
+            # Extract box in [x1, y1, x2, y2] format
+            x1, y1, x2, y2 = [int(b) for b in boxes[i]]
+            confidence = float(probs[i])
+
+            # Convert [x1, y1, x2, y2] → [x, y, w, h] to match our standard format
+            box = [x1, y1, x2 - x1, y2 - y1]
+
+            # Scale back to original image coordinates if we resized
             if scale != 1.0:
                 box = [int(b / scale) for b in box]
-                keypoints = {
-                    k: (int(v[0] / scale), int(v[1] / scale))
-                    for k, v in keypoints.items()
-                }
+
+            # Extract the 5 landmarks
+            # facenet_pytorch returns landmarks as [[x,y], [x,y], ...] for
+            # left_eye, right_eye, nose, mouth_left, mouth_right
+            lm = landmarks[i]  # shape [5, 2]
+            keypoints = {
+                'left_eye':    (int(lm[0][0] / scale), int(lm[0][1] / scale)) if scale != 1.0 else (int(lm[0][0]), int(lm[0][1])),
+                'right_eye':   (int(lm[1][0] / scale), int(lm[1][1] / scale)) if scale != 1.0 else (int(lm[1][0]), int(lm[1][1])),
+                'nose':        (int(lm[2][0] / scale), int(lm[2][1] / scale)) if scale != 1.0 else (int(lm[2][0]), int(lm[2][1])),
+                'mouth_left':  (int(lm[3][0] / scale), int(lm[3][1] / scale)) if scale != 1.0 else (int(lm[3][0]), int(lm[3][1])),
+                'mouth_right': (int(lm[4][0] / scale), int(lm[4][1] / scale)) if scale != 1.0 else (int(lm[4][0]), int(lm[4][1])),
+            }
 
             if not validate_detection(box, confidence, image.shape):
                 continue

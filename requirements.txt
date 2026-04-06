@@ -3,11 +3,12 @@ opencv-python>=4.8.0
 numpy>=1.24.0
 
 # Face Detection
-mtcnn>=0.1.1
+# mtcnn>=0.1.1            # OLD — uses TensorFlow, causes import errors
+facenet-pytorch>=2.5.3     # includes PyTorch-based MTCNN + FaceNet
 retina-face>=0.0.13
 
 # Face Recognition
-facenet-pytorch>=2.5.3
+# facenet-pytorch already listed above (provides both MTCNN + FaceNet)
 # insightface>=0.7.3       # uncomment if using ArcFace via insightface
 deepface>=0.0.79            # wrapper for multiple models
 
