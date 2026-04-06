@@ -1,20 +1,9 @@
-# Core
 opencv-python>=4.8.0
 numpy>=1.24.0
-
-# Face Detection
-# mtcnn>=0.1.1            # OLD — uses TensorFlow, causes import errors
-facenet-pytorch>=2.5.3     # includes PyTorch-based MTCNN + FaceNet
+torch
+torchvision
+facenet-pytorch>=2.5.3
 retina-face>=0.0.13
-
-# Face Recognition
-# facenet-pytorch already listed above (provides both MTCNN + FaceNet)
-# insightface>=0.7.3       # uncomment if using ArcFace via insightface
-deepface>=0.0.79            # wrapper for multiple models
-
-# Utilities
-scikit-learn>=1.3.0         # cosine similarity, metrics
+deepface>=0.0.79
+scikit-learn>=1.3.0
 Pillow>=10.0.0
-
-# Optional: GUI
-# streamlit>=1.28.0         # uncomment if building Streamlit GUI

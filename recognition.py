@@ -1,21 +1,9 @@
 """
-recognition.py — Face Recognition Module (Person B's responsibility)
+recognition.py - Face Recognition Module
+Extracts face embeddings and matches them against known identities.
+Supports FaceNet (128D) and ArcFace (512D).
 
-This module will handle:
-  1. Loading pre-trained models (FaceNet, ArcFace)
-  2. Extracting face embeddings from cropped face images
-  3. Comparing embeddings using cosine similarity
-  4. Returning the best match or "unknown"
-
-TODO (Person B — Day 2):
-  - Implement FaceNetRecogniser class
-  - Implement embedding extraction
-  - Implement cosine similarity matching
-
-TODO (Person B — Day 3):
-  - Implement ArcFaceRecogniser class
-  - Add threshold-based matching logic
-  - Add get_recogniser() factory function
+Person B is responsible for this module.
 """
 
 import numpy as np
@@ -25,82 +13,56 @@ import config
 
 class FaceNetRecogniser:
     """
-    Face recognition using FaceNet (128-dimensional embeddings).
-
-    FaceNet maps face images to a compact 128D vector space where:
-      - Faces of the same person are close together (low distance)
-      - Faces of different people are far apart (high distance)
-
-    The model was trained using a 'triplet loss' function:
-      - Anchor: a face image of person X
-      - Positive: another image of person X (should be close)
-      - Negative: an image of person Y (should be far)
-
-    TODO: Person B implements this on Day 2.
+    FaceNet maps a 160x160 face image to a 128-dimensional embedding vector.
+    Faces of the same person cluster together in this vector space.
+    
+    Person B: implement extract_embedding() using facenet_pytorch.InceptionResnetV1
     """
 
     def __init__(self):
-        # TODO: Load the FaceNet model using facenet-pytorch
+        # TODO: load model
         # from facenet_pytorch import InceptionResnetV1
         # self.model = InceptionResnetV1(pretrained='vggface2').eval()
-        print("[INFO] FaceNetRecogniser — placeholder (implement on Day 2)")
+        print("[FaceNet] Placeholder - Person B to implement")
 
     def extract_embedding(self, face_image):
         """
-        Convert a cropped 160x160 face image into a 128D embedding vector.
-
-        Parameters:
-            face_image (numpy.ndarray): Cropped face, 160x160, BGR.
-
-        Returns:
-            numpy.ndarray: 128-dimensional embedding vector.
+        Takes a 160x160 BGR face image (from detection.detect() -> face_160),
+        returns a 128D numpy array.
         """
-        # TODO: Implement
-        # 1. Convert BGR to RGB
-        # 2. Convert to tensor, normalise to [-1, 1]
-        # 3. Run through self.model
-        # 4. Return the embedding as numpy array
+        # TODO: convert BGR->RGB, normalise to tensor, run model, return numpy
         pass
 
-    def compare(self, embedding1, embedding2):
-        """
-        Compute cosine similarity between two embeddings.
-
-        Returns:
-            float: Similarity score (1.0 = identical, 0.0 = completely different)
-        """
-        return cosine_similarity(
-            embedding1.reshape(1, -1),
-            embedding2.reshape(1, -1)
-        )[0][0]
+    def compare(self, emb1, emb2):
+        """Cosine similarity between two embeddings. 1.0 = identical."""
+        return cosine_similarity(emb1.reshape(1, -1), emb2.reshape(1, -1))[0][0]
 
 
 class ArcFaceRecogniser:
     """
-    Face recognition using ArcFace (512-dimensional embeddings).
-
-    ArcFace uses an 'Additive Angular Margin Loss' which forces the model
-    to learn even more discriminative features than FaceNet's triplet loss.
-
-    TODO: Person B implements this on Day 3.
+    ArcFace produces 512D embeddings with better discriminative power than FaceNet.
+    
+    Person B: implement using insightface or deepface wrapper.
     """
 
     def __init__(self):
-        # TODO: Load ArcFace model
-        print("[INFO] ArcFaceRecogniser — placeholder (implement on Day 3)")
+        # TODO: load model
+        print("[ArcFace] Placeholder - Person B to implement")
 
     def extract_embedding(self, face_image):
-        """Extract a 512D embedding from a 112x112 face image."""
-        # TODO: Implement
+        """
+        Takes a 112x112 BGR face image (from detection.detect() -> face_112),
+        returns a 512D numpy array.
+        """
+        # TODO: implement
         pass
 
 
-def get_recogniser(model_name=None):
-    """Factory function to get the appropriate recogniser."""
-    name = model_name or config.RECOGNITION_MODEL
-    if name.lower() == "facenet":
+def get_recogniser(name=None):
+    """Get recogniser by name. Defaults to config setting."""
+    name = (name or config.RECOGNITION_MODEL).lower()
+    if name == "facenet":
         return FaceNetRecogniser()
-    elif name.lower() == "arcface":
+    elif name == "arcface":
         return ArcFaceRecogniser()
-    else:
-        raise ValueError(f"Unknown recogniser: {name}")
+    raise ValueError(f"Unknown recogniser: {name}")

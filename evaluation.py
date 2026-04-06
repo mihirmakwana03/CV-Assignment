@@ -1,70 +1,39 @@
 """
-evaluation.py — Evaluation & Metrics Module (Person D's responsibility)
+evaluation.py - Evaluation & Metrics
+Computes accuracy, confusion matrices, and model comparison reports.
 
-This module will handle:
-  1. Computing accuracy metrics for face recognition
-  2. Generating confusion matrices
-  3. Threshold analysis (finding the optimal similarity threshold)
-  4. Comparing performance across model combinations
-
-TODO (Person D — Day 3-5):
-  - Implement accuracy calculation
-  - Implement confusion matrix generation
-  - Add model comparison reporting
-  - Generate plots/charts for the report
+Person D is responsible for this module.
 """
 
 import numpy as np
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
-import config
 
 
 def compute_accuracy(true_labels, predicted_labels):
-    """
-    Compute recognition accuracy.
-
-    Parameters:
-        true_labels (list): Ground truth names.
-        predicted_labels (list): Predicted names from the system.
-
-    Returns:
-        float: Accuracy score (0.0 to 1.0)
-    """
+    """Simple accuracy: what fraction of predictions were correct."""
     return accuracy_score(true_labels, predicted_labels)
 
 
 def generate_confusion_matrix(true_labels, predicted_labels, label_names=None):
-    """
-    Generate a confusion matrix for recognition results.
-
-    Parameters:
-        true_labels (list): Ground truth names.
-        predicted_labels (list): Predicted names.
-        label_names (list, optional): Ordered list of person names.
-
-    Returns:
-        numpy.ndarray: The confusion matrix.
-    """
+    """Build a confusion matrix for recognition results."""
     return confusion_matrix(true_labels, predicted_labels, labels=label_names)
 
 
-def model_comparison_report(results_dict):
-    """
-    Compare performance across different model combinations.
+def get_classification_report(true_labels, predicted_labels):
+    """Detailed per-class precision, recall, F1."""
+    return classification_report(true_labels, predicted_labels)
 
-    Parameters:
-        results_dict (dict): {
-            "MTCNN + FaceNet": {"accuracy": 0.95, "true": [...], "pred": [...]},
-            "MTCNN + ArcFace": {"accuracy": 0.97, "true": [...], "pred": [...]},
-            ...
-        }
 
-    TODO: Implement reporting and visualisation.
+def compare_models(results_dict):
     """
-    print("\n╔══════════════════════════════════════════════════════╗")
-    print("║          Model Comparison Report                     ║")
-    print("╠══════════════════════════════════════════════════════╣")
-    for combo_name, data in results_dict.items():
-        acc = data.get('accuracy', 0)
-        print(f"║  {combo_name:<30} | Accuracy: {acc:.2%}    ║")
-    print("╚══════════════════════════════════════════════════════╝")
+    Print a comparison of model combinations.
+    
+    results_dict format:
+        {"MTCNN + FaceNet": {"accuracy": 0.95, ...}, ...}
+    """
+    print("\nModel comparison:")
+    print(f"  {'Combination':<30} {'Accuracy':>10}")
+    print("  " + "-" * 42)
+    for combo, data in results_dict.items():
+        print(f"  {combo:<30} {data['accuracy']:>10.2%}")
+    print()
