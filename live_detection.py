@@ -64,6 +64,9 @@ def match_face(face, recogniser, db):
     best_score = 0.0
 
     for name, known_emb in known:
+        if np.asarray(embedding).shape[0] != np.asarray(known_emb).shape[0]:
+            print(f"[WARN] Skipping {name}: dim mismatch live={np.asarray(embedding).shape[0]} db={np.asarray(known_emb).shape[0]}")
+            continue
         score = recogniser.compare(embedding, known_emb)
         if score > config.FACENET_THRESHOLD and score > best_score:
             best_name = name

@@ -1,18 +1,3 @@
-
-────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  DETECTOR COMPARISON RESULTS
-────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Image                     | MTCNN  | Retina | MTCNN ms  | Retina ms  | MTCNN Conf  | Retina Conf  | Avg IoU 
-────────────────────────────────────────────────────────────────────────────────────────────────────────────
-My.jpeg                   |   1    |  N/A   |   322.7   |    0.0     |    0.998    |     N/A      |  0.000  
-My_1.jpg                  |   1    |  N/A   |   67.1    |    0.0     |    1.000    |     N/A      |  0.000  
-main.jpeg                 |   1    |  N/A   |   88.9    |    0.0     |    1.000    |     N/A      |  0.000  
-────────────────────────────────────────────────────────────────────────────────────────────────────────────
-
-  SUMMARY (3 images tested):
-    MTCNN  — Total faces: 3, Avg time: 159.6ms/image
-    Retina — Total faces: 0, Avg time: 0.0ms/image
-
-    Speed ratio: RetinaFace is 0.0x faster than MTCNN
-    MTCNN detected 3 more face(s) overall
-────────────────────────────────────────────────────────────────────────────────────────────────────────────
+My.jpeg: MTCNN=1 faces (409ms, conf=0.998), RetinaFace=N/A faces (0ms)
+My_1.jpg: MTCNN=1 faces (59ms, conf=1.000), RetinaFace=N/A faces (0ms)
+main.jpeg: MTCNN=1 faces (74ms, conf=1.000), RetinaFace=N/A faces (0ms)
