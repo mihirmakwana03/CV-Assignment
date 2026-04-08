@@ -1,8 +1,6 @@
 """
 main.py - Smart Office Face Recognition System
 CLI interface for registering and recognising faces.
-
-Person C owns this file and integrates everyone's modules.
 """
 
 import cv2
@@ -10,6 +8,7 @@ import numpy as np
 import config
 from detection import get_detector
 from registration import FaceDatabase
+from recognition import get_recogniser
 
 
 def capture_image():
@@ -49,7 +48,7 @@ def capture_image():
     return frame
 
 
-def register_person(detector, db):
+def register_person(detector, recogniser, db):
     """Register a new person into the database."""
     name = input("\n  Name: ").strip()
     if not name:
@@ -65,7 +64,6 @@ def register_person(detector, db):
         print("  No face detected. Try again with a clearer image.")
         return
 
-    # if multiple faces found, pick the largest one
     if len(faces) > 1:
         faces.sort(key=lambda f: f['box'][2] * f['box'][3], reverse=True)
         print(f"  Found {len(faces)} faces, using the largest one")
@@ -73,16 +71,13 @@ def register_person(detector, db):
     face = faces[0]
     print(f"  Face detected (confidence: {face['confidence']:.3f})")
 
-    # TODO: Person B - replace dummy embedding with real one
-    # recogniser = get_recogniser()
-    # embedding = recogniser.extract_embedding(face['face_160'])
-    dummy_embedding = np.random.randn(128).astype(np.float32)
-
-    db.register(name, dummy_embedding, config.RECOGNITION_MODEL, face['face_160'])
+    # extract real embedding using Person B's recogniser
+    embedding = recogniser.extract_embedding(face['face_160'])
+    db.register(name, embedding, config.RECOGNITION_MODEL, face['face_160'])
     print(f"  Registered: {name}")
 
 
-def recognise_person(detector, db):
+def recognise_person(detector, recogniser, db):
     """Try to identify a face against the database."""
     if db.is_empty():
         print("\n  No registered users yet. Register someone first.")
@@ -100,11 +95,26 @@ def recognise_person(detector, db):
     face = faces[0]
     print(f"  Face detected (confidence: {face['confidence']:.3f})")
 
-    # TODO: Person B - implement matching
-    # recogniser = get_recogniser()
-    # embedding = recogniser.extract_embedding(face['face_160'])
-    # match against db.get_all_embeddings()
-    print("  Recognition matching - waiting for Person B's implementation")
+    # extract embedding and match against database
+    embedding = recogniser.extract_embedding(face['face_160'])
+    known = db.get_all_embeddings()
+
+    best_name = "Unknown"
+    best_score = 0.0
+
+    for name, known_emb in known:
+        # skip if dimensions don't match (mixed model entries)
+        if np.asarray(embedding).shape[0] != np.asarray(known_emb).shape[0]:
+            continue
+        score = recogniser.compare(embedding, known_emb)
+        if score > config.FACENET_THRESHOLD and score > best_score:
+            best_name = name
+            best_score = score
+
+    if best_name != "Unknown":
+        print(f"  Welcome back, {best_name}! (similarity: {best_score:.3f})")
+    else:
+        print("  Unknown person. Use option 1 to register them.")
 
 
 def main():
@@ -113,30 +123,39 @@ def main():
     print(f"  Recognition: {config.RECOGNITION_MODEL}\n")
 
     detector = get_detector()
+    recogniser = get_recogniser()
     db = FaceDatabase()
 
     while True:
-        print("  1. Register new person")
+        print("\n  1. Register new person")
         print("  2. Recognise a face")
-        print("  3. List registered users")
-        print("  4. Remove a user")
-        print("  5. Quit")
+        print("  3. Live webcam mode")
+        print("  4. List registered users")
+        print("  5. Remove a user")
+        print("  6. Run evaluation")
+        print("  7. Quit")
         choice = input("\n  > ").strip()
 
         if choice == "1":
-            register_person(detector, db)
+            register_person(detector, recogniser, db)
         elif choice == "2":
-            recognise_person(detector, db)
+            recognise_person(detector, recogniser, db)
         elif choice == "3":
-            db.list_users()
+            from live_detection import main as live_main
+            live_main()
         elif choice == "4":
+            db.list_users()
+        elif choice == "5":
             name = input("  Name to remove: ").strip()
             db.remove_user(name)
-        elif choice == "5":
+        elif choice == "6":
+            from evaluation import run_evaluation
+            run_evaluation()
+        elif choice == "7":
             print("  Bye!")
             break
         else:
-            print("  Pick 1-5")
+            print("  Pick 1-7")
 
 
 if __name__ == "__main__":

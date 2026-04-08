@@ -1,0 +1,110 @@
+Execution Instructions - Smart Office Face Recognition System
+=============================================================
+
+Module: CI7523 Computer Vision
+Group: [Your 4 student numbers here]
+
+
+1. Prerequisites
+-----------------
+- Python 3.10 or higher
+- Webcam (built-in or USB)
+- Windows, macOS, or Linux
+
+
+2. Installation
+----------------
+Open a terminal in the project folder and run:
+
+    pip install torch torchvision
+    pip install facenet-pytorch --no-deps
+    pip install opencv-python scikit-learn Pillow numpy
+    pip install deepface --no-deps
+    pip install retina-face --no-deps
+
+Note: If torch installation fails, use the CPU-only version:
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+
+3. Quick Setup Test
+--------------------
+Place at least one face photo in the sample_images/ folder, then run:
+
+    python test_setup.py sample_images/your_photo.jpg
+
+Expected output: Face detected with confidence score, cropped face saved,
+database test passed.
+
+
+4. Running the System
+----------------------
+
+Option A - Full CLI menu:
+
+    python main.py
+
+    Menu options:
+    1. Register new person (webcam or image file)
+    2. Recognise a face
+    3. Live webcam mode (real-time detection + recognition)
+    4. List registered users
+    5. Remove a user
+    6. Run evaluation
+    7. Quit
+
+Option B - Live webcam mode directly:
+
+    python live_detection.py
+
+    Keyboard controls:
+    R = Register the face currently on screen
+    Q = Quit
+    P = Toggle preprocessing on/off
+
+
+5. Running the Detector Comparison
+-----------------------------------
+Place test images in sample_images/, then run:
+
+    python compare_detectors.py
+
+Outputs comparison table, annotated images in data/comparison_visuals/,
+and cropped faces in data/cropped_faces/.
+
+
+6. Running Evaluation
+----------------------
+Name images as personname_number.jpg (e.g. mihir_1.jpg, shreyas_1.jpg).
+Register those same people via live_detection.py first, then run:
+
+    python evaluation.py
+
+Outputs accuracy, confusion matrix, and classification report.
+
+
+7. Project File Structure
+--------------------------
+config.py              - Configuration settings
+detection.py           - Face detection (MTCNN + RetinaFace)
+recognition.py         - Face recognition (FaceNet + ArcFace)
+registration.py        - Database and registration
+evaluation.py          - Accuracy metrics and evaluation
+main.py                - CLI entry point
+live_detection.py      - Real-time webcam detection
+compare_detectors.py   - Detector comparison tool
+test_setup.py          - Setup verification
+requirements.txt       - Python dependencies
+sample_images/         - Test face images
+data/                  - Generated data (database, crops, visuals)
+
+
+8. Troubleshooting
+-------------------
+- "No module named torch": Run pip install torch torchvision
+- "RuntimeError: Could not infer dtype of numpy.uint8": Ensure detection.py
+  uses Image.fromarray(rgb.astype('uint8'), 'RGB')
+- "RetinaFace not installed": Run pip install retina-face --no-deps
+  (RetinaFace is optional; MTCNN works without it)
+- Webcam not opening: Check config.py CAMERA_INDEX (try 0 or 1)
+- Recognition shows "Unknown" for registered users: Delete data/known_faces.json
+  and re-register everyone using the same model (don't mix FaceNet and ArcFace)
