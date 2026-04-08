@@ -3,7 +3,7 @@ detection.py - Face Detection Module
 Handles face detection, alignment, cropping and preprocessing.
 Supports MTCNN (PyTorch) and RetinaFace as detection backends.
 
-Person A is responsible for this module.
+Person A .
 """
 
 import cv2
@@ -162,7 +162,7 @@ class MTCNNDetector:
             processed, scale = image.copy(), 1.0
 
         rgb = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB)
-        pil_img = Image.fromarray(rgb)
+        pil_img = Image.fromarray(rgb.astype('uint8'), 'RGB')
 
         boxes, probs, points = self.model.detect(pil_img, landmarks=True)
         elapsed = (time.time() - t0) * 1000
