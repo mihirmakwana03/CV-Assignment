@@ -3,7 +3,7 @@ detection.py - Face Detection Module
 Handles face detection, alignment, cropping and preprocessing.
 Supports MTCNN (PyTorch) and RetinaFace as detection backends.
 
-Person A is responsible for this module.
+Person A .
 """
 
 import cv2
