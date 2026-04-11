@@ -2,7 +2,7 @@ Execution Instructions - Smart Office Face Recognition System
 =============================================================
 
 Module: CI7523 Computer Vision
-Group: [Your 4 student numbers here]
+Group: 2
 
 
 1. Prerequisites

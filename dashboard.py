@@ -105,10 +105,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize components
-detector = get_detector()
-recogniser = get_recogniser()
-database = FaceDatabase()
+# Cache heavy model loading so it only happens ONCE, not on every rerun.
+# Without this, MTCNN + FaceNet reload on every click (15-20 seconds).
+@st.cache_resource
+def load_detector():
+    return get_detector()
+
+@st.cache_resource
+def load_recogniser():
+    return get_recogniser()
+
+def load_database():
+    return FaceDatabase()
+
+detector = load_detector()
+recogniser = load_recogniser()
+database = load_database()
 
 # Attendance file path
 ATTENDANCE_FILE = "attendance_records.json"
@@ -309,10 +321,8 @@ if menu == "📋 Mark Attendance":
                                 if success:
                                     st.session_state.marked_today.add(name)
                                     last_marked_time = current_time
-                                    status_placeholder.markdown(f'<div class="status-success">✅ {message}</div>', unsafe_allow_html=True)
+                                    status_placeholder.markdown(f'<div class="status-success">✅ {name} - {message}</div>', unsafe_allow_html=True)
                                     st.session_state.recognition_logs.append(f"{datetime.now().strftime('%H:%M:%S')} - {name} attendance marked")
-                                    # Refresh attendance display
-                                    st.rerun()
                                 else:
                                     status_placeholder.markdown(f'<div class="status-warning">⚠️ {message}</div>', unsafe_allow_html=True)
                         else:
